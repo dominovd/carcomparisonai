@@ -41,8 +41,31 @@ export default async function ScenarioPage({
     .map((p) => ({ ...p, v: getVehicle(p.vehicle) }))
     .filter((p) => p.v !== undefined);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: scenario.title,
+    description: scenario.intro.slice(0, 160),
+    itemListElement: picks.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Car",
+        name: `${p.v!.year} ${p.v!.make} ${p.v!.model}`,
+        brand: { "@type": "Brand", name: p.v!.make },
+        model: p.v!.model,
+        vehicleModelDate: String(p.v!.year),
+        offers: { "@type": "Offer", price: p.v!.msrp, priceCurrency: "USD" },
+      },
+    })),
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="py-12">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{scenario.title}</h1>
         <p className="mt-4 leading-relaxed text-ink-soft">{scenario.intro}</p>

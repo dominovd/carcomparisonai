@@ -158,8 +158,39 @@ export default async function ComparePage({
   const b = cmp.vehicleB;
   const rows = buildRows(a, b);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${a.year} ${a.make} ${a.model} vs ${b.make} ${b.model}`,
+    description: `Comparison of specs, cost of ownership and safety: ${a.make} ${a.model} vs ${b.make} ${b.model}.`,
+    itemListElement: [a, b].map((v, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Car",
+        name: `${v.year} ${v.make} ${v.model} ${v.trim}`,
+        brand: { "@type": "Brand", name: v.make },
+        model: v.model,
+        vehicleModelDate: String(v.year),
+        bodyType: v.bodyType,
+        seatingCapacity: v.seats,
+        fuelType: v.fuelType,
+        offers: {
+          "@type": "Offer",
+          price: v.msrp,
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+        },
+      },
+    })),
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="py-12 text-center">
         <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand">
           {a.year} · {a.bodyType}
