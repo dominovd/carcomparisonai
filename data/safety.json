@@ -1,0 +1,79 @@
+{
+  "honda-cr-v-2025": {
+    "recallsCount": 1,
+    "complaintsCount": 216,
+    "recallSummaries": [
+      "STEERING: Honda (American Honda Motor Co.) is recalling certain 2023-2025 Acura Integra, Civic Type R, CR-V Hybrid, CR-V, HR-V, 2022-2025 Civic, Civic Hatchback..."
+    ]
+  },
+  "toyota-rav4-2025": {
+    "recallsCount": 3,
+    "complaintsCount": 63,
+    "recallSummaries": [
+      "ELECTRICAL SYSTEM: INSTRUMENT CLUSTER/PANEL: Toyota Motor Engineering & Manufacturing (Toyota) is recalling certain 2023-2024 Toyota Venza, 2023-2025 RAV4 Prime, RAV4, Highlander, GR Corolla, Crown...",
+      "BACK OVER PREVENTION:DISPLAY FUNCTION: Toyota Motor Engineering & Manufacturing (Toyota) is recalling certain 2022-2026 Toyota, Lexus, and Subaru Solterra vehicles equipped with a Panoramic View...",
+      "SEATS:CRITICAL FASTENERS: Toyota Motor Engineering & Manufacturing (Toyota) is recalling certain 2025 RAV 4 vehicles. The front seat brackets for the seat rails may be welded improperly."
+    ]
+  },
+  "honda-civic-2025": {
+    "recallsCount": 2,
+    "complaintsCount": 57,
+    "recallSummaries": [
+      "STEERING: Honda (American Honda Motor Co.) is recalling certain 2023-2025 Acura Integra, Civic Type R, CR-V Hybrid, CR-V, HR-V, 2022-2025 Civic, Civic Hatchback...",
+      "FUEL SYSTEM, GASOLINE:DELIVERY:FUEL PUMP: Honda (American Honda Motor Co.) is recalling certain 2023-2024 Honda Accord, Accord Hybrid, 2023-2025 Honda CR-V Hybrid, and 2025 Honda Civic and Civic..."
+    ]
+  },
+  "toyota-corolla-2025": {
+    "recallsCount": 0,
+    "complaintsCount": 22,
+    "recallSummaries": []
+  },
+  "toyota-camry-2025": {
+    "recallsCount": 1,
+    "complaintsCount": 126,
+    "recallSummaries": [
+      "ELECTRICAL SYSTEM: INSTRUMENT CLUSTER/PANEL: Toyota Motor Engineering & Manufacturing (Toyota) is recalling certain 2023-2024 Toyota Venza, 2023-2025 RAV4 Prime, RAV4, Highlander, GR Corolla, Crown..."
+    ]
+  },
+  "honda-accord-2025": {
+    "recallsCount": 0,
+    "complaintsCount": 67,
+    "recallSummaries": []
+  },
+  "tesla-model-y-2025": {
+    "recallsCount": 3,
+    "complaintsCount": 85,
+    "recallSummaries": [
+      "TIRES:PRESSURE MONITORING AND REGULATING SYSTEMS: Tesla, Inc. (Tesla) is recalling certain 2024 Cybertruck, 2017-2025 Model 3, and 2020-2025 Model Y vehicles. The tire pressure monitoring system (TPMS) warning light may not remain illuminated...",
+      "BACK OVER PREVENTION:SOFTWARE: Tesla, Inc. (Tesla) is recalling certain 2024-2025 Model 3, Model S, 2023-2025 Model X, and Model Y vehicles. The computer circuit board may short, resulting in the loss of the rearview camera image...",
+      "EQUIPMENT:OTHER:LABELS: Tesla, Inc. (Tesla) is recalling certain 2025-2026 Model Y vehicles. The certification label may not have been installed."
+    ]
+  },
+  "tesla-model-3-2025": {
+    "recallsCount": 3,
+    "complaintsCount": 101,
+    "recallSummaries": [
+      "TIRES:PRESSURE MONITORING AND REGULATING SYSTEMS: Tesla, Inc. (Tesla) is recalling certain 2024 Cybertruck, 2017-2025 Model 3, and 2020-2025 Model Y vehicles. The tire pressure monitoring system (TPMS) warning light may not remain illuminated...",
+      "BACK OVER PREVENTION:SOFTWARE: Tesla, Inc. (Tesla) is recalling certain 2024-2025 Model 3, Model S, 2023-2025 Model X, and Model Y vehicles. The computer circuit board may short, resulting in the loss of the rearview camera image...",
+      "ELECTRICAL SYSTEM:PROPULSION SYSTEM:FUSES, RELAYS, CONTACTS, AND SHUNTS: Tesla, Inc. (Tesla) is recalling certain 2025 Model 3 and 2026 Model Y vehicles. The battery pack contactors may fail, causing a loss of drive power."
+    ]
+  },
+  "ford-f-150-2025": {
+    "recallsCount": 12,
+    "complaintsCount": 92,
+    "recallSummaries": [
+      "ENGINE AND ENGINE COOLING:ENGINE:OIL/LUBRICATION: Ford Motor Company (Ford) is recalling certain 2024-2025 F-150, 2024 Expedition and 2024 Lincoln Navigator vehicles equipped with a 3.5L GTDI engine. The engines may have a misaligned engine cup plug...",
+      "POWER TRAIN:AUTOMATIC TRANSMISSION:FLUID/LUBRICANT:VALVES/VALVE BODY: Ford Motor Company (Ford) is recalling certain 2024-2025 F-150, Bronco, 2024 Ranger, 2025 Mustang, Explorer, and Aviator vehicles. The transmission valve body may have been machined incorrectly...",
+      "STEERING: Ford Motor Company (Ford) is recalling certain 2025 F-150 vehicles. The lower intermediate shaft fasteners may be improperly attached to the steering gear, allowing the shaft to come loose or detach."
+    ]
+  },
+  "ford-mustang-2025": {
+    "recallsCount": 4,
+    "complaintsCount": 10,
+    "recallSummaries": [
+      "POWER TRAIN:AUTOMATIC TRANSMISSION:FLUID/LUBRICANT:VALVES/VALVE BODY: Ford Motor Company (Ford) is recalling certain 2024-2025 F-150, Bronco, 2024 Ranger, 2025 Mustang, Explorer, and Aviator vehicles. The transmission valve body may have been machined incorrectly...",
+      "EXTERIOR LIGHTING:LIGHTING CONTROL MODULE: Ford Motor Company (Ford) is recalling certain 2025 Lincoln Nautilus, Mustang Mach E, and Mustang vehicles. The LED Driver Modules may contain a burnt diode, which can cause the low-beam and high-beam headlights...",
+      "EXTERIOR LIGHTING: Ford Motor Company (Ford) is recalling certain 2024-2025 Mustang, and Mustang GTD vehicles. Water may enter the body control module and cause a loss of communication with the exterior lighting..."
+    ]
+  }
+}
