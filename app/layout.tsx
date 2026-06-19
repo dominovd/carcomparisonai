@@ -31,8 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <header className="border-b border-slate-200">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+        <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
               <svg viewBox="0 0 64 64" className="h-6 w-6" aria-hidden="true">
                 <rect width="64" height="64" rx="14" fill="#1D9E75" />
@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </svg>
               CarComparisonAI
             </Link>
-            <nav className="flex gap-6 text-sm text-ink-soft">
+            <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-soft">
               <Link href="/#comparisons" className="hover:text-ink">
                 Comparisons
               </Link>

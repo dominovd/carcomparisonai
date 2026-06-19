@@ -28,7 +28,7 @@ export default function TcoSection({ a, b }: { a: Vehicle; b: Vehicle }) {
   return (
     <section className="mb-12">
       <h2 className="mb-1 text-xl font-semibold tracking-tight">
-        Cost of ownership - for your driving
+        Car cost of ownership comparison - for your driving
       </h2>
       <p className="mb-4 text-sm text-ink-soft">
         Adjust the numbers to your life. They're saved on this device and applied to every

@@ -210,7 +210,9 @@ export default function ChoosePage() {
 
       {results.length > 0 && (
         <section className="space-y-5">
-          <h2 className="text-2xl font-semibold tracking-tight">Your top {results.length}</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Your top {results.length} car comparison matches
+          </h2>
           {results.map((r, i) => (
             <div key={r.v.slug} className="rounded-xl border border-slate-200 p-5 sm:p-6">
               <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">

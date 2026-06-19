@@ -231,7 +231,9 @@ export default async function ComparePage({
       </section>
 
       <section className="mb-12">
-        <h2 className="mb-4 text-xl font-semibold tracking-tight">Specs side by side</h2>
+        <h2 className="mb-4 text-xl font-semibold tracking-tight">
+          {a.model} vs {b.model} specs side by side
+        </h2>
         <table className="w-full table-fixed border-collapse text-sm">
           <thead>
             <tr className="text-left">
@@ -265,7 +267,9 @@ export default async function ComparePage({
       <TcoSection a={a} b={b} />
 
       <section className="mb-12">
-        <h2 className="mb-4 text-xl font-semibold tracking-tight">Who each car is for</h2>
+        <h2 className="mb-4 text-xl font-semibold tracking-tight">
+          {a.model} vs {b.model}: buyer fit comparison
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {[a, b].map((v) => (
             <div key={v.slug} className="rounded-xl border border-slate-200 p-5">
@@ -294,7 +298,9 @@ export default async function ComparePage({
       </section>
 
       <section className="mb-12">
-        <h2 className="mb-1 text-xl font-semibold tracking-tight">Risks, recalls &amp; what to check</h2>
+        <h2 className="mb-1 text-xl font-semibold tracking-tight">
+          Safety, recalls and reliability risks
+        </h2>
         <p className="mb-5 text-sm text-ink-soft">
           Recall and complaint data is pulled from official NHTSA records for the {a.year} model
           year.
@@ -347,7 +353,9 @@ export default async function ComparePage({
       </section>
 
       <section className="mb-12">
-        <h2 className="mb-4 text-xl font-semibold tracking-tight">Questions to ask the dealer</h2>
+        <h2 className="mb-4 text-xl font-semibold tracking-tight">
+          Dealer questions for this car comparison
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {[a, b].map((v) => (
             <div key={v.slug} className="rounded-xl border border-slate-200 p-5">
@@ -365,7 +373,7 @@ export default async function ComparePage({
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold tracking-tight">More comparisons</h2>
+        <h2 className="mb-4 text-xl font-semibold tracking-tight">More car comparisons</h2>
         <div className="flex flex-wrap gap-2">
           {comparisons
             .filter((c) => c.slug !== slug)
@@ -387,7 +395,9 @@ export default async function ComparePage({
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-1 text-xl font-semibold tracking-tight">Build your own comparison</h2>
+        <h2 className="mb-1 text-xl font-semibold tracking-tight">
+          Build your own side-by-side car comparison
+        </h2>
         <p className="text-sm text-ink-soft">Pick any two cars from our database.</p>
         <ComparePicker />
       </section>
