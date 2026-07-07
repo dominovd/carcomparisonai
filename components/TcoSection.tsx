@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { calcTco, usd, type Vehicle } from "@/lib/vehicles";
-import { useProfile } from "@/components/profile";
+import { defaultProfile, useProfile, type Profile } from "@/components/profile";
 
 const inputCls =
   "w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-brand focus:outline-none";
@@ -13,6 +13,31 @@ const SEGMENTS = [
   { key: "maintenance", label: "Maintenance", color: "bg-amber-500" },
   { key: "depreciation", label: "Depreciation", color: "bg-slate-400" },
 ] as const;
+
+const PRESETS: { label: string; profile: Profile }[] = [
+  { label: "Average driver", profile: defaultProfile },
+  {
+    label: "Low mileage",
+    profile: { ...defaultProfile, milesPerYear: 8000 },
+  },
+  {
+    label: "High mileage",
+    profile: { ...defaultProfile, milesPerYear: 22000 },
+  },
+  {
+    label: "Public EV rates",
+    profile: { ...defaultProfile, electricityPerKwh: 0.42 },
+  },
+];
+
+function sameProfile(a: Profile, b: Profile) {
+  return (
+    a.milesPerYear === b.milesPerYear &&
+    a.years === b.years &&
+    a.gasPricePerGallon === b.gasPricePerGallon &&
+    a.electricityPerKwh === b.electricityPerKwh
+  );
+}
 
 export default function TcoSection({ a, b }: { a: Vehicle; b: Vehicle }) {
   const [profile, saveProfile] = useProfile();
@@ -34,6 +59,24 @@ export default function TcoSection({ a, b }: { a: Vehicle; b: Vehicle }) {
         Adjust the numbers to your life. They're saved on this device and applied to every
         comparison on the site.
       </p>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {PRESETS.map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            onClick={() => saveProfile(preset.profile)}
+            className={[
+              "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+              sameProfile(profile, preset.profile)
+                ? "border-brand bg-brand-light text-brand-dark"
+                : "border-slate-200 text-ink-soft hover:border-brand hover:text-ink",
+            ].join(" ")}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-4">
         <label className="text-xs text-ink-soft">
@@ -120,7 +163,8 @@ export default function TcoSection({ a, b }: { a: Vehicle; b: Vehicle }) {
           </div>
           <p className="mt-1 text-xs text-ink-faint">
             Fuel {usd(t.fuel)} · Insurance {usd(t.insurance)} · Maintenance {usd(t.maintenance)} ·
-            Depreciation {usd(t.depreciation)}
+            Depreciation {usd(t.depreciation)} · $
+            {(t.total / Math.max(1, profile.milesPerYear * profile.years)).toFixed(2)}/mi
           </p>
         </div>
       ))}

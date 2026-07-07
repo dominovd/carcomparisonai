@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { buildPairSlug, vehicles, type Vehicle } from "@/lib/vehicles";
+import { buildPairSlug, dataStatus, vehicles, type Vehicle } from "@/lib/vehicles";
 
 function vehicleLabel(v: Vehicle) {
   return `${v.year} ${v.make} ${v.model}`;
@@ -94,7 +94,7 @@ function VehicleCombobox({
             }
           }}
           placeholder="Search make, model, trim..."
-          className="h-12 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-9 text-sm text-ink shadow-sm outline-none transition placeholder:text-ink-faint focus:border-brand focus:ring-2 focus:ring-brand-light"
+          className="h-12 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-9 text-sm font-medium text-ink shadow-sm outline-none transition placeholder:text-ink-faint focus:border-brand focus:ring-4 focus:ring-emerald-100"
         />
         <svg
           viewBox="0 0 20 20"
@@ -178,25 +178,40 @@ export default function ComparePicker() {
   const same = a === b;
 
   return (
-    <div className="mt-8 max-w-3xl rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-xl shadow-slate-200/70 sm:p-4">
-      <div className="mb-3 flex items-center justify-between gap-3 px-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+    <div className="mt-8 max-w-4xl rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-xl shadow-slate-200/70 backdrop-blur sm:p-4">
+      <div className="mb-3 flex items-center justify-between gap-3 px-1 text-xs font-bold uppercase tracking-[0.18em] text-ink-faint">
         <span>Build a comparison</span>
-        <span className="hidden text-brand-dark sm:inline">Search by make, model, trim or type</span>
+        <span className="hidden text-brand-dark sm:inline">Make · model · trim · type</span>
       </div>
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] lg:items-center">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center">
         <VehicleCombobox label="First car" value={a} onChange={setA} />
-        <span className="shrink-0 text-center text-sm font-semibold text-ink-faint">vs</span>
+        <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-center text-xs font-bold uppercase tracking-wide text-ink-faint">
+          vs
+        </span>
         <VehicleCombobox label="Second car" value={b} onChange={setB} />
         <button
           onClick={() => router.push(`/compare/${buildPairSlug(a, b)}`)}
           disabled={same}
-          className="h-12 shrink-0 rounded-lg bg-brand px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-brand px-6 text-sm font-semibold text-white shadow-lg shadow-emerald-700/20 transition hover:-translate-y-0.5 hover:bg-brand-dark disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-40 md:col-span-3"
         >
           Compare
+          <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+            <path
+              d="M4 10h11m0 0-4.5-4.5M15 10l-4.5 4.5"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+          </svg>
         </button>
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1">
-        <p className="text-xs text-ink-faint">Tip: type “Toyota”, “SUV”, “hybrid”, “Tesla” or “2025”.</p>
+        <p className="text-xs text-ink-faint">
+          {dataStatus.vehicles} vehicles available now. Try “Toyota”, “SUV”, “hybrid”, “Tesla” or
+          “2025”.
+        </p>
         {same && (
           <p className="text-xs font-medium text-red-600">Pick two different cars to compare.</p>
         )}

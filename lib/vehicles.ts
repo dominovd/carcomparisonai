@@ -34,6 +34,12 @@ export const vehicles = vehiclesJson as Vehicle[];
 
 const safetyData = safetyJson as Record<string, SafetyInfo>;
 
+export const dataStatus = {
+  vehicles: vehicles.length,
+  makes: [...new Set(vehicles.map((v) => v.make))].length,
+  updated: "June 2026",
+};
+
 export function getSafety(slug: string): SafetyInfo | undefined {
   return safetyData[slug];
 }

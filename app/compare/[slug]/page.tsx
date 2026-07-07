@@ -7,6 +7,7 @@ import TcoSection from "@/components/TcoSection";
 import {
   calcTco,
   comparisons,
+  dataStatus,
   dealerQuestions,
   getComparison,
   getSafety,
@@ -125,14 +126,22 @@ function WinnerCards({ a, b }: { a: Vehicle; b: Vehicle }) {
 
   if (cards.length === 0) return null;
   return (
-    <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {cards.slice(0, 4).map((c) => (
-        <div key={c.label} className="rounded-xl bg-slate-50 p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">{c.label}</p>
-          <p className="mt-1 font-semibold">{c.winner}</p>
-          <p className="text-xs text-ink-soft">{c.detail}</p>
-        </div>
-      ))}
+    <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-faint">
+          Quick decision
+        </h2>
+        <span className="text-xs font-medium text-ink-soft">Based on current assumptions</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {cards.slice(0, 4).map((c) => (
+          <div key={c.label} className="rounded-xl bg-slate-50 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">{c.label}</p>
+            <p className="mt-1 font-semibold">{c.winner}</p>
+            <p className="text-xs text-ink-soft">{c.detail}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -200,6 +209,9 @@ export default async function ComparePage({
         </h1>
         <p className="mt-3 text-ink-soft">
           {a.trim} vs {b.trim} - specs, true cost of ownership and safety, side by side.
+        </p>
+        <p className="mt-2 text-sm text-ink-faint">
+          Beta database: {dataStatus.vehicles} popular vehicles. Data refreshed {dataStatus.updated}.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           <GarageButton slug={a.slug} label={a.model} />
@@ -303,7 +315,8 @@ export default async function ComparePage({
         </h2>
         <p className="mb-5 text-sm text-ink-soft">
           Recall and complaint data is pulled from official NHTSA records for the {a.year} model
-          year.
+          year. Last refreshed {dataStatus.updated}; complaint counts are risk signals, not a
+          defect rate.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {[a, b].map((v) => {

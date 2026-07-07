@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import ComparePicker from "@/components/ComparePicker";
-import { calcTco, comparisons, getComparison, scenarios, usd, vehicles } from "@/lib/vehicles";
+import { calcTco, comparisons, dataStatus, getComparison, scenarios, usd, vehicles } from "@/lib/vehicles";
 
 export const metadata: Metadata = {
   title: "Car Comparison Tool - Compare Cars Side by Side",
@@ -18,9 +18,9 @@ const savings = Math.abs(featuredATco.total - featuredBTco.total);
 const winner = featuredATco.total <= featuredBTco.total ? featuredA : featuredB;
 
 const trustStats = [
+  { value: String(dataStatus.vehicles), label: "Cars in current database" },
   { value: "EPA", label: "Fuel economy" },
   { value: "NHTSA", label: "Safety + recalls" },
-  { value: "5-year", label: "Ownership model" },
 ];
 
 const decisionCards = [
@@ -162,138 +162,229 @@ const formatCar = (vehicle: typeof featuredA) =>
 export default function HomePage() {
   return (
     <div className="overflow-hidden">
-      <section id="compare" className="relative border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,#f0fdfa,transparent_34%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-14 pt-10 sm:pt-14 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:pb-20">
-          <div>
-            <div className="mb-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-              <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-brand-dark">
-                Real EPA &amp; NHTSA data
-              </span>
-              <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
-                Built for buying decisions
-              </span>
-            </div>
-            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-ink sm:text-6xl">
-              Compare cars by what they actually cost to own.
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-ink-soft">
-              CarComparisonAI turns specs, safety data, fuel costs and ownership estimates into a
-              clear recommendation: which car fits your life, your budget and your risk tolerance.
-            </p>
+      <section id="compare" className="relative border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_72%,#eefdf7_100%)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 border-b border-slate-100 bg-[linear-gradient(90deg,rgba(29,158,117,0.08)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,42,0.06)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-12 sm:pt-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:pb-24">
+          <div className="relative">
+            <div className="relative">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-dark">
+                <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+                  <path
+                    d="m14 14 3 3M8.5 15a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeWidth="1.9"
+                  />
+                </svg>
+                Car comparison tool
+              </div>
+              <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-ink sm:text-6xl">
+                Compare cars side by side before you buy.
+              </h1>
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-ink-soft">
+                Search two models and instantly compare price, MPG, safety, cargo space and
+                5-year ownership cost with real EPA and NHTSA data.
+              </p>
+              <p className="mt-3 text-sm font-medium text-ink-soft">
+                Current beta database: {dataStatus.vehicles} popular 2025 vehicles from{" "}
+                {dataStatus.makes} makes. Data last refreshed {dataStatus.updated}.
+              </p>
 
-            <ComparePicker />
+              <div className="mt-7 rounded-xl border border-emerald-200 bg-white/80 p-4 shadow-sm shadow-emerald-100/70">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-300 bg-emerald-50 text-brand">
+                    <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4">
+                      <path
+                        d="M5 10.5 8.2 14 15.5 6"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  </span>
+                  <p className="text-sm font-semibold leading-6 text-brand-dark">
+                    What you will see: specs, safety signals, ownership cost, practical fit and a
+                    clear shortlist verdict.
+                  </p>
+                </div>
+              </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link
-                href="/choose"
-                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand-dark"
-              >
-                Help me choose
-              </Link>
-              <a href="#comparisons" className="px-2 py-3 text-sm font-semibold text-brand-dark">
-                Browse popular comparisons
-              </a>
+              <ComparePicker />
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/choose"
+                  className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand-dark"
+                >
+                  Help me choose
+                </Link>
+                <a href="#comparisons" className="px-2 py-3 text-sm font-semibold text-brand-dark">
+                  Browse popular comparisons
+                </a>
+              </div>
             </div>
           </div>
 
           <div className="relative">
-            <div className="absolute -right-16 -top-10 hidden h-48 w-48 rounded-full border border-emerald-200 lg:block" />
-            <div className="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/70 sm:p-5">
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-                    Live comparison preview
-                  </p>
-                  <p className="mt-1 text-xl font-semibold tracking-tight">
-                    {featuredA.model} vs {featuredB.model}
-                  </p>
+            <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-300/70">
+              <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4">
+                <div className="flex gap-2">
+                  <span className="h-3 w-3 rounded-full bg-slate-300" />
+                  <span className="h-3 w-3 rounded-full bg-slate-300" />
+                  <span className="h-3 w-3 rounded-full bg-slate-300" />
                 </div>
-                <span className="rounded-full bg-brand-light px-3 py-1 text-xs font-semibold text-brand-dark">
-                  {winner.model} saves {usd(savings)}
-                </span>
+                <div className="ml-3 flex min-w-0 items-center gap-2 text-sm font-semibold text-ink-soft">
+                  <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4 shrink-0 text-brand">
+                    <path
+                      d="m14 14 3 3M8.5 15a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeWidth="1.9"
+                    />
+                  </svg>
+                  <span className="truncate">CarComparisonAI workspace</span>
+                </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[featuredA, featuredB].map((vehicle, index) => {
-                  const tco = index === 0 ? featuredATco : featuredBTco;
-                  const vehicleImage = vehicleImages[vehicle.slug];
-                  return (
-                    <div
-                      key={vehicle.slug}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                    >
-                      <div className="mb-4 flex h-28 items-center justify-center overflow-hidden rounded-lg bg-white px-2 shadow-inner">
-                        {vehicleImage ? (
-                          <img
-                            src={vehicleImage.src}
-                            alt={vehicleImage.alt}
-                            className="h-full w-full object-contain"
-                            loading={index === 0 ? "eager" : "lazy"}
-                          />
-                        ) : (
-                          <div className="mx-auto h-10 w-full max-w-[180px]">
+              <div className="p-5 sm:p-7">
+                <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-ink-faint">
+                      Active comparison
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+                      {featuredA.model} vs {featuredB.model}
+                    </h2>
+                  </div>
+                  <span className="w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-brand-dark">
+                    {winner.model} saves {usd(savings)}
+                  </span>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[featuredA, featuredB].map((vehicle, index) => {
+                    const tco = index === 0 ? featuredATco : featuredBTco;
+                    const vehicleImage = vehicleImages[vehicle.slug];
+                    const isWinner = vehicle.slug === winner.slug;
+                    return (
+                      <div
+                        key={vehicle.slug}
+                        className={[
+                          "relative overflow-hidden rounded-xl border p-4",
+                          isWinner
+                            ? "border-emerald-200 bg-emerald-50/80"
+                            : "border-slate-200 bg-slate-50",
+                        ].join(" ")}
+                      >
+                        {isWinner && (
+                          <span className="absolute right-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-brand-dark shadow-sm">
+                            Lower cost
+                          </span>
+                        )}
+                        <div className="mb-4 flex h-24 items-center justify-center rounded-lg bg-white px-2 shadow-inner">
+                          {vehicleImage ? (
+                            <img
+                              src={vehicleImage.src}
+                              alt={vehicleImage.alt}
+                              className="h-full w-full object-contain"
+                              loading={index === 0 ? "eager" : "lazy"}
+                            />
+                          ) : (
+                            <div className="mx-auto h-10 w-full max-w-[180px]">
+                              <div
+                                className={[
+                                  "h-7 rounded-t-[36px] border-2",
+                                  index === 0
+                                    ? "border-brand bg-emerald-100"
+                                    : "border-slate-500 bg-slate-200",
+                                ].join(" ")}
+                              />
+                              <div className="mx-auto -mt-1 h-4 w-[88%] rounded-b-xl bg-ink" />
+                              <div className="-mt-3 flex justify-between px-5">
+                                <span className="h-4 w-4 rounded-full border-2 border-white bg-slate-900" />
+                                <span className="h-4 w-4 rounded-full border-2 border-white bg-slate-900" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <p className="pr-24 text-sm font-semibold leading-5 text-ink">
+                          {formatCar(vehicle)}
+                        </p>
+                        <p className="mt-1 text-xs text-ink-soft">{vehicle.trim}</p>
+                        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+                          <div className="rounded-lg bg-white p-2 shadow-sm">
+                            <p className="font-semibold text-ink">{vehicle.mpgCombined}</p>
+                            <p className="text-ink-faint">MPG</p>
+                          </div>
+                          <div className="rounded-lg bg-white p-2 shadow-sm">
+                            <p className="font-semibold text-ink">{vehicle.cargoCuFt}</p>
+                            <p className="text-ink-faint">cu ft</p>
+                          </div>
+                          <div className="rounded-lg bg-white p-2 shadow-sm">
+                            <p className="font-semibold text-ink">{vehicle.nhtsaOverall}/5</p>
+                            <p className="text-ink-faint">safety</p>
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <div className="mb-1 flex justify-between text-xs text-ink-soft">
+                            <span>5-year cost</span>
+                            <span className="font-semibold text-ink">{usd(tco.total)}</span>
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-slate-200">
                             <div
                               className={[
-                                "h-7 rounded-t-[36px] border-2",
-                                index === 0
-                                  ? "border-brand bg-emerald-100"
-                                  : "border-slate-500 bg-slate-200",
+                                "h-full rounded-full",
+                                isWinner ? "bg-brand" : "bg-slate-400",
                               ].join(" ")}
+                              style={{
+                                width: `${Math.max(
+                                  46,
+                                  Math.round((Math.min(featuredATco.total, featuredBTco.total) / tco.total) * 100)
+                                )}%`,
+                              }}
                             />
-                            <div className="mx-auto -mt-1 h-4 w-[88%] rounded-b-xl bg-ink" />
-                            <div className="-mt-3 flex justify-between px-5">
-                              <span className="h-4 w-4 rounded-full border-2 border-white bg-slate-900" />
-                              <span className="h-4 w-4 rounded-full border-2 border-white bg-slate-900" />
-                            </div>
                           </div>
-                        )}
-                      </div>
-                      <p className="font-semibold">{formatCar(vehicle)}</p>
-                      <p className="text-sm text-ink-soft">{vehicle.trim}</p>
-                      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-                        <div className="rounded-lg bg-white p-2">
-                          <p className="font-semibold text-ink">{vehicle.mpgCombined}</p>
-                          <p className="text-ink-faint">MPG</p>
-                        </div>
-                        <div className="rounded-lg bg-white p-2">
-                          <p className="font-semibold text-ink">{vehicle.cargoCuFt}</p>
-                          <p className="text-ink-faint">cu ft</p>
-                        </div>
-                        <div className="rounded-lg bg-white p-2">
-                          <p className="font-semibold text-ink">{vehicle.nhtsaOverall}/5</p>
-                          <p className="text-ink-faint">safety</p>
                         </div>
                       </div>
-                      <div className="mt-4">
-                        <div className="mb-1 flex justify-between text-xs text-ink-soft">
-                          <span>5-year cost</span>
-                          <span className="font-semibold text-ink">{usd(tco.total)}</span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                          <div
-                            className="h-full rounded-full bg-brand"
-                            style={{
-                              width: `${Math.max(
-                                46,
-                                Math.round((Math.min(featuredATco.total, featuredBTco.total) / tco.total) * 100)
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
 
-              <div className="mt-4 rounded-xl bg-ink p-4 text-white">
-                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">
-                  AI-style verdict
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-200">
-                  {featured?.verdict ??
-                    "Compare the purchase price, fuel cost, safety data and daily usability before you choose."}
-                </p>
+                <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-[1fr_auto_auto] gap-3 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-ink-faint">
+                    <span>Comparison metric</span>
+                    <span>{featuredA.model}</span>
+                    <span>{featuredB.model}</span>
+                  </div>
+                  <div className="divide-y divide-slate-200 bg-white">
+                    {comparisonRows.slice(0, 4).map((row) => (
+                      <div key={row.label} className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-3 text-sm">
+                        <span className="font-medium text-ink">{row.label}</span>
+                        <span className="text-ink-soft">{row.a}</span>
+                        <span className="text-ink-soft">{row.b}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-xl bg-ink p-4 text-white">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">
+                      Verdict
+                    </p>
+                    <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs text-slate-200">
+                      Buyer-ready
+                    </span>
+                  </div>
+                  <p className="text-sm leading-6 text-slate-200">
+                    {featured?.verdict ??
+                      "Compare purchase price, fuel cost, safety data and daily usability before you choose."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

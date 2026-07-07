@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   buildPairSlug,
   calcTco,
+  dataStatus,
   getSafety,
   usd,
   vehicles,
@@ -133,6 +134,10 @@ export default function ChoosePage() {
           using EPA data, NHTSA records and our cost model ({profile.milesPerYear.toLocaleString()}{" "}
           mi/yr, {profile.years} years - adjustable on any comparison page).
         </p>
+        <p className="mt-3 text-sm font-medium text-ink-soft">
+          Current beta coverage: {dataStatus.vehicles} vehicles from {dataStatus.makes} makes,
+          updated {dataStatus.updated}.
+        </p>
       </section>
 
       <section className="mb-8 space-y-6 rounded-xl border border-slate-200 p-5 sm:p-6">
@@ -210,9 +215,15 @@ export default function ChoosePage() {
 
       {results.length > 0 && (
         <section className="space-y-5">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Your top {results.length} car comparison matches
-          </h2>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Your top {results.length} car comparison matches
+            </h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              Ranked across the current {dataStatus.vehicles}-vehicle database using your selected
+              budget, body type and priorities.
+            </p>
+          </div>
           {results.map((r, i) => (
             <div key={r.v.slug} className="rounded-xl border border-slate-200 p-5 sm:p-6">
               <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">

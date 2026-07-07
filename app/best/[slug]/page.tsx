@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   buildPairSlug,
   calcTco,
+  dataStatus,
   getScenario,
   getVehicle,
   scenarios,
@@ -69,6 +70,40 @@ export default async function ScenarioPage({
       <section className="py-12">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{scenario.title}</h1>
         <p className="mt-4 leading-relaxed text-ink-soft">{scenario.intro}</p>
+        <p className="mt-3 text-sm text-ink-faint">
+          Ranked from the current {dataStatus.vehicles}-vehicle beta database. Data refreshed{" "}
+          {dataStatus.updated}.
+        </p>
+      </section>
+
+      <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="grid grid-cols-[3rem_1fr_auto_auto] gap-3 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-ink-faint">
+          <span>Rank</span>
+          <span>Vehicle</span>
+          <span>MPG</span>
+          <span>5-year cost</span>
+        </div>
+        <div className="divide-y divide-slate-200">
+          {picks.map((p, i) => {
+            const v = p.v!;
+            const tco = calcTco(v);
+            return (
+              <div
+                key={v.slug}
+                className="grid grid-cols-[3rem_1fr_auto_auto] gap-3 px-4 py-3 text-sm"
+              >
+                <span className="font-semibold text-brand">#{i + 1}</span>
+                <span className="font-medium text-ink">
+                  {v.make} {v.model}
+                </span>
+                <span className="text-ink-soft">
+                  {v.mpgCombined} {v.fuelType === "ev" ? "MPGe" : "MPG"}
+                </span>
+                <span className="text-ink-soft">{usd(tco.total)}</span>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <section className="space-y-5">

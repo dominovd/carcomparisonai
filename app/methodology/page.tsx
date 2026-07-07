@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { tcoAssumptions } from "@/lib/vehicles";
+import { dataStatus, tcoAssumptions } from "@/lib/vehicles";
 
 export const metadata: Metadata = {
   title: "How we calculate our numbers",
@@ -31,7 +31,9 @@ export default function MethodologyPage() {
             NHTSA
           </a>{" "}
           - the federal agency that runs crash tests and tracks every recall in the US. Recall and
-          complaint data refers to the specific model year shown and is refreshed regularly.
+          complaint data refers to the specific model year shown. The current beta database covers{" "}
+          {dataStatus.vehicles} vehicles from {dataStatus.makes} makes and was last refreshed in{" "}
+          {dataStatus.updated}.
         </p>
       </section>
 
