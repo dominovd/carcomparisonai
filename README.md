@@ -2,7 +2,7 @@
 
 Side-by-side car comparisons with real EPA / NHTSA data and 5-year cost of ownership.
 
-- Стек: Next.js 15 + Tailwind, статическая генерация, хостинг Vercel.
+- Стек: Astro 5 + React-острова + Tailwind, статическая генерация (страницы произвольных пар сравнений рендерятся на сервере), хостинг Vercel.
 - План развития: [carcomparisonai-plan.md](./carcomparisonai-plan.md)
 - Дизайн и архитектура: [DESIGN.md](./DESIGN.md)
 - Запуск и деплой: [SETUP.md](./SETUP.md)

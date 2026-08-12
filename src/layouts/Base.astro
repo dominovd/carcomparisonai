@@ -1,0 +1,141 @@
+---
+import GarageLink from "@/components/GarageLink";
+import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  robots?: string;
+  pageType?: "website" | "article";
+}
+
+const {
+  title,
+  description = "Side-by-side car comparisons with real EPA and NHTSA data: specs, 5-year cost of ownership and safety ratings.",
+  image = "/vehicles/2025-honda-cr-v-outline.webp",
+  imageAlt = "CarComparisonAI vehicle comparison",
+  robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
+  pageType = "website",
+} = Astro.props;
+
+const fullTitle = title
+  ? `${title} | CarComparisonAI`
+  : "CarComparisonAI - compare cars with real data";
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const socialImage = new URL(image, Astro.site);
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://carcomparisonai.com/#organization",
+      name: "CarComparisonAI",
+      url: Astro.site?.toString() ?? "https://carcomparisonai.com",
+      logo: new URL("/icon.svg", Astro.site).toString(),
+      email: "info@carcomparisonai.com",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://carcomparisonai.com/#website",
+      name: "CarComparisonAI",
+      url: Astro.site?.toString() ?? "https://carcomparisonai.com",
+      description:
+        "Side-by-side car comparisons with real EPA and NHTSA data: specs, cost of ownership and safety ratings.",
+      publisher: { "@id": "https://carcomparisonai.com/#organization" },
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content={pageType} />
+    <meta property="og:site_name" content="CarComparisonAI" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:width" content="996" />
+    <meta property="og:image:height" content="534" />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+    <meta
+      name="google-site-verification"
+      content="BhyXJrYt0iLxK4f6g_3r5EdyaE2oXzjYqTsxHpEOBy8"
+    />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
+  </head>
+  <body>
+    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <a href="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight">
+          <svg viewBox="0 0 64 64" class="h-6 w-6" aria-hidden="true">
+            <rect width="64" height="64" rx="14" fill="#1D9E75"></rect>
+            <path
+              d="M16 36c0-2 1-3 3-3.4l3.4-7.2A5 5 0 0 1 27 22h10a5 5 0 0 1 4.6 3.4L45 32.6c2 .4 3 1.4 3 3.4v6a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1H22v1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-6z"
+              fill="#fff"></path>
+            <circle cx="24" cy="37" r="2.6" fill="#1D9E75"></circle>
+            <circle cx="40" cy="37" r="2.6" fill="#1D9E75"></circle>
+            <path d="M25.5 26.5h13l2.2 5h-17.4l2.2-5z" fill="#1D9E75"></path>
+          </svg>
+          CarComparisonAI
+        </a>
+        <nav class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-soft">
+          <a href="/#comparisons" class="hover:text-ink">Compare cars</a>
+          <a href="/#situations" class="hover:text-ink">Best cars</a>
+          <a href="/methodology" class="hover:text-ink">How it works</a>
+          <GarageLink client:load />
+          <a
+            href="/#compare"
+            class="rounded-lg border border-brand px-4 py-2 text-sm font-semibold text-brand-dark transition hover:bg-brand-light"
+          >
+            Start comparison
+          </a>
+        </nav>
+      </div>
+    </header>
+    <main><slot /></main>
+    <footer class="mt-16 border-t border-slate-200 py-6 text-sm text-ink-faint">
+      <div
+        class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 sm:flex-row"
+      >
+        <a href="/" class="flex items-center gap-2 font-semibold tracking-tight text-ink">
+          <svg viewBox="0 0 64 64" class="h-5 w-5" aria-hidden="true">
+            <rect width="64" height="64" rx="14" fill="#1D9E75"></rect>
+            <path
+              d="M16 36c0-2 1-3 3-3.4l3.4-7.2A5 5 0 0 1 27 22h10a5 5 0 0 1 4.6 3.4L45 32.6c2 .4 3 1.4 3 3.4v6a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1H22v1a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-6z"
+              fill="#fff"></path>
+            <circle cx="24" cy="37" r="2.6" fill="#1D9E75"></circle>
+            <circle cx="40" cy="37" r="2.6" fill="#1D9E75"></circle>
+          </svg>
+          CarComparisonAI
+        </a>
+        <nav class="flex flex-wrap justify-center gap-x-5 gap-y-2">
+          <a href="/about" class="hover:text-ink">About</a>
+          <a href="/methodology" class="hover:text-ink">How it works</a>
+          <a href="/privacy" class="hover:text-ink">Privacy</a>
+          <a href="/terms" class="hover:text-ink">Terms</a>
+          <a href="/contact" class="hover:text-ink">Contact</a>
+        </nav>
+        <p>© {new Date().getFullYear()} CarComparisonAI</p>
+      </div>
+    </footer>
+  </body>
+</html>

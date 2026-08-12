@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://carcomparisonai.com/sitemap.xml

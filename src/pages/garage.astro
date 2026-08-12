@@ -1,0 +1,12 @@
+---
+import Base from "@/layouts/Base.astro";
+import GarageContent from "@/components/GarageContent";
+---
+
+<Base
+  title="My garage"
+  description="Your saved car shortlist, stored on this device, with ownership-cost estimates based on your profile."
+  robots="noindex,follow"
+>
+  <GarageContent client:load />
+</Base>

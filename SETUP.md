@@ -32,7 +32,7 @@ git push -u origin main
 
 1. Зайди на https://vercel.com → Add New → Project.
 2. Import репозиторий `carcomparisonai` (дай Vercel доступ к GitHub, если спросит).
-3. Framework определится сам (Next.js). Ничего не меняй → Deploy.
+3. Framework определится сам (Astro). Ничего не меняй → Deploy.
 4. Через ~1 минуту получишь URL вида `carcomparisonai.vercel.app`.
 
 Переменная окружения (Settings → Environment Variables):

@@ -1,0 +1,689 @@
+---
+import Base from "@/layouts/Base.astro";
+import ComparePicker from "@/components/ComparePicker";
+import GarageButton from "@/components/GarageButton";
+import TcoSection from "@/components/TcoSection";
+import {
+  buildPairSlug,
+  calcTco,
+  comparisons,
+  dataStatus,
+  dealerQuestions,
+  getComparison,
+  getSafety,
+  resolvePair,
+  tcoAssumptions,
+  usd,
+  type Vehicle,
+} from "@/lib/vehicles";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const cmp = resolvePair(slug ?? "");
+if (!cmp) return new Response("Not found", { status: 404 });
+
+const a = cmp.vehicleA;
+const b = cmp.vehicleB;
+const canonicalSlug = buildPairSlug(a.slug, b.slug);
+if (slug !== canonicalSlug) return Astro.redirect(`/compare/${canonicalSlug}`, 301);
+const isCurated = comparisons.some((comparison) => comparison.slug === slug);
+
+const imgSrc = (v: Vehicle) =>
+  `/vehicles/${v.year}-${v.make.toLowerCase()}-${v.model.toLowerCase().replace(/ /g, "-")}-outline.webp`;
+
+interface SpecRow {
+  label: string;
+  a: string;
+  b: string;
+  winner: 0 | 1 | 2;
+}
+
+function buildRows(a: Vehicle, b: Vehicle): SpecRow[] {
+  const num = (x: number) => x.toLocaleString("en-US");
+  const lowerWins = (x: number, y: number): 0 | 1 | 2 => (x === y ? 0 : x < y ? 1 : 2);
+  const higherWins = (x: number, y: number): 0 | 1 | 2 => (x === y ? 0 : x > y ? 1 : 2);
+  return [
+    { label: "Starting MSRP", a: usd(a.msrp), b: usd(b.msrp), winner: lowerWins(a.msrp, b.msrp) },
+    {
+      label: a.fuelType === "ev" || b.fuelType === "ev" ? "Combined MPG / MPGe" : "Combined MPG",
+      a: num(a.mpgCombined),
+      b: num(b.mpgCombined),
+      winner: higherWins(a.mpgCombined, b.mpgCombined),
+    },
+    {
+      label: "Horsepower",
+      a: `${a.horsepower} hp`,
+      b: `${b.horsepower} hp`,
+      winner: higherWins(a.horsepower, b.horsepower),
+    },
+    {
+      label: "Cargo space",
+      a: `${a.cargoCuFt} cu ft`,
+      b: `${b.cargoCuFt} cu ft`,
+      winner: higherWins(a.cargoCuFt, b.cargoCuFt),
+    },
+    {
+      label: "NHTSA overall rating",
+      a: "★".repeat(a.nhtsaOverall),
+      b: "★".repeat(b.nhtsaOverall),
+      winner: higherWins(a.nhtsaOverall, b.nhtsaOverall),
+    },
+    { label: "Drivetrain", a: a.drivetrain, b: b.drivetrain, winner: 0 },
+    { label: "Seats", a: String(a.seats), b: String(b.seats), winner: 0 },
+  ];
+}
+
+const rows = buildRows(a, b);
+
+const tcoA = calcTco(a);
+const tcoB = calcTco(b);
+const sa = getSafety(a.slug);
+const sb = getSafety(b.slug);
+
+const tcoWinner = tcoB.total >= tcoA.total ? a : b;
+const tcoOther = tcoWinner.slug === a.slug ? b : a;
+const otherAngle =
+  tcoOther.cargoCuFt > tcoWinner.cargoCuFt
+    ? "the roomier choice"
+    : tcoOther.horsepower > tcoWinner.horsepower
+      ? "the quicker choice"
+      : "the alternative pick";
+
+const bestFor = (v: Vehicle) => {
+  const g = v.goodFor[0] ?? "everyday driving";
+  return g.charAt(0).toLowerCase() + g.slice(1);
+};
+
+const icons: Record<string, string[]> = {
+  tag: ["M4.5 5.5h6.8l8.2 8.2-6.8 6.8-8.2-8.2Z", "M8.8 8.8h.01"],
+  dollar: [
+    "M12 5.5v13",
+    "M15.2 8.2c-.7-1.1-1.8-1.7-3.2-1.7-1.8 0-3.2 1-3.2 2.5s1.3 2.1 3.2 2.5c1.9.4 3.2 1.1 3.2 2.6s-1.4 2.4-3.2 2.4c-1.4 0-2.6-.7-3.2-1.8",
+  ],
+  box: [
+    "M4.5 8.2 12 4.6l7.5 3.6v7.6L12 19.4l-7.5-3.6Z",
+    "M4.5 8.2 12 11.8l7.5-3.6",
+    "M12 11.8v7.6",
+  ],
+  shield: [
+    "M12 4l7 2.6v4.9c0 4.4-2.9 7.4-7 8.5-4.1-1.1-7-4.1-7-8.5V6.6L12 4Z",
+    "M9.2 11.8l2.1 2.2 3.7-4",
+  ],
+  gauge: ["M5 15.8a7.5 7.5 0 1 1 14 0", "M12 13.6l3-3"],
+  calendar: ["M5 6.5h14V19H5Z", "M5 10.5h14", "M9 4.5V8", "M15 4.5V8"],
+  droplet: ["M12 4c3.4 3.9 5.4 6.8 5.4 9.4a5.4 5.4 0 1 1-10.8 0C6.6 10.8 8.6 7.9 12 4Z"],
+};
+
+const winnerCards: { label: string; winner: string; detail: string; icon: string }[] = [];
+
+if (tcoA.total !== tcoB.total) {
+  const w = tcoA.total < tcoB.total ? a : b;
+  winnerCards.push({
+    label: "Lower 5-year cost",
+    winner: w.model,
+    detail: `saves ~${usd(Math.abs(tcoA.total - tcoB.total))}`,
+    icon: "dollar",
+  });
+}
+if (a.msrp !== b.msrp) {
+  const w = a.msrp < b.msrp ? a : b;
+  winnerCards.push({
+    label: "Lower price",
+    winner: w.model,
+    detail: `${usd(Math.abs(a.msrp - b.msrp))} less upfront`,
+    icon: "tag",
+  });
+}
+if (a.cargoCuFt !== b.cargoCuFt) {
+  const w = a.cargoCuFt > b.cargoCuFt ? a : b;
+  winnerCards.push({
+    label: "More cargo",
+    winner: w.model,
+    detail: `+${Math.abs(a.cargoCuFt - b.cargoCuFt).toFixed(1)} cu ft`,
+    icon: "box",
+  });
+}
+if (sa && sb && sa.recallsCount !== sb.recallsCount) {
+  const w = sa.recallsCount < sb.recallsCount ? a : b;
+  winnerCards.push({
+    label: "Fewer recalls",
+    winner: w.model,
+    detail: `${Math.min(sa.recallsCount, sb.recallsCount)} vs ${Math.max(sa.recallsCount, sb.recallsCount)} (NHTSA)`,
+    icon: "shield",
+  });
+} else if (a.horsepower !== b.horsepower) {
+  const w = a.horsepower > b.horsepower ? a : b;
+  winnerCards.push({
+    label: "More power",
+    winner: w.model,
+    detail: `+${Math.abs(a.horsepower - b.horsepower)} hp`,
+    icon: "shield",
+  });
+}
+
+const anchorTabs = [
+  { href: "#overview", label: "Overview" },
+  { href: "#specs", label: "Specs" },
+  { href: "#cost", label: "Ownership cost" },
+  { href: "#safety", label: "Safety" },
+  { href: "#fit", label: "Buyer fit" },
+];
+
+const moreComparisons = comparisons
+  .filter((c) => c.slug !== slug)
+  .slice(0, 4)
+  .map((c) => getComparison(c.slug))
+  .filter((c) => c !== undefined);
+
+const title = `${a.year} ${a.make} ${a.model} vs ${b.make} ${b.model}: specs & 5-year cost`;
+const description = `${a.make} ${a.model} vs ${b.make} ${b.model} compared: MSRP, MPG, cargo space, NHTSA safety and true 5-year cost of ownership with real EPA data.`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://carcomparisonai.com/" },
+        { "@type": "ListItem", position: 2, name: "Compare cars", item: "https://carcomparisonai.com/#comparisons" },
+        { "@type": "ListItem", position: 3, name: `${a.model} vs ${b.model}` },
+      ],
+    },
+    {
+      "@type": "ItemList",
+      name: `${a.year} ${a.make} ${a.model} vs ${b.make} ${b.model}`,
+      description: `Comparison of specs, cost of ownership and safety: ${a.make} ${a.model} vs ${b.make} ${b.model}.`,
+      itemListElement: [a, b].map((v, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Car",
+          name: `${v.year} ${v.make} ${v.model} ${v.trim}`,
+          image: new URL(imgSrc(v), Astro.site).toString(),
+          brand: { "@type": "Brand", name: v.make },
+          model: v.model,
+          vehicleModelDate: String(v.year),
+          bodyType: v.bodyType,
+          seatingCapacity: v.seats,
+          fuelType: v.fuelType,
+          additionalProperty: [
+            { "@type": "PropertyValue", name: "Starting MSRP", value: usd(v.msrp) },
+            { "@type": "PropertyValue", name: "Combined MPG or MPGe", value: v.mpgCombined },
+            { "@type": "PropertyValue", name: "Cargo space", value: `${v.cargoCuFt} cu ft` },
+            { "@type": "PropertyValue", name: "NHTSA overall rating", value: `${v.nhtsaOverall} out of 5` },
+          ],
+        },
+      })),
+    },
+  ],
+};
+---
+
+<Base
+  title={title}
+  description={description}
+  image={imgSrc(a)}
+  imageAlt={`${a.year} ${a.make} ${a.model} compared with ${b.make} ${b.model}`}
+  pageType="article"
+  robots={isCurated ? undefined : "noindex,follow"}
+>
+  <div class="mx-auto max-w-5xl px-4">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <nav class="pt-6 text-sm text-ink-faint" aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-1.5">
+        <li>
+          <a href="/" class="transition hover:text-ink">Home</a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li>
+          <a href="/#comparisons" class="transition hover:text-ink">Compare cars</a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li class="text-ink-soft">
+          {a.model} vs {b.model}
+        </li>
+      </ol>
+    </nav>
+
+    <section class="grid gap-10 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-14">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-[0.18em] text-brand">
+          {a.year} {a.bodyType} comparison
+        </p>
+        <h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-5xl">
+          <span class="block">{a.make} {a.model}</span>
+          <span class="block">vs {b.make} {b.model}</span>
+        </h1>
+        <p class="mt-4 text-lg text-ink-soft">
+          Specs, price, safety and 5-year ownership cost - compared side by side.
+        </p>
+        <p class="mt-3 text-sm text-ink-faint">
+          EPA & NHTSA data · Updated {dataStatus.updated}
+        </p>
+      </div>
+
+      <div class="relative grid grid-cols-2 gap-5">
+        <span class="absolute left-1/2 top-1/2 z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-xs font-bold text-ink shadow-md">
+          VS
+        </span>
+        {[a, b].map((v) => (
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+            <p class="text-sm font-bold leading-5 text-ink">
+              {v.year} {v.make} {v.model}
+            </p>
+            <p class="mt-0.5 text-xs text-ink-soft">{v.trim}</p>
+            <div class="my-3 min-h-[80px]">
+              <img
+                src={imgSrc(v)}
+                alt={`${v.year} ${v.make} ${v.model} outline`}
+                class="h-20 w-full object-contain"
+                loading="lazy"
+                    onerror="this.style.visibility='hidden'"
+              />
+            </div>
+            <div class="grid grid-cols-3 gap-1">
+              <div>
+                <p class="text-xs font-semibold text-ink">{usd(v.msrp)}</p>
+                <p class="text-[10px] leading-4 text-ink-faint">Starting MSRP</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-ink">{v.mpgCombined}</p>
+                <p class="text-[10px] leading-4 text-ink-faint">Combined MPG</p>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-ink">{v.cargoCuFt} cu ft</p>
+                <p class="text-[10px] leading-4 text-ink-faint">Cargo</p>
+              </div>
+            </div>
+            <div class="mt-3 [&_button]:w-full">
+              <GarageButton client:load slug={v.slug} label={v.model} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <div class="mx-auto max-w-3xl px-4">
+    <section id="overview" class="mb-6 flex gap-4 rounded-2xl bg-brand-light p-6">
+      <span class="hidden h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-brand text-white sm:flex">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="h-7 w-7">
+          <path
+            d="M8 21h8M12 17.5V21M7 4h10v5a5 5 0 0 1-10 0ZM7 5.5H4.5V7A3.5 3.5 0 0 0 7 10.4M17 5.5h2.5V7a3.5 3.5 0 0 1-2.5 3.4"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+          />
+        </svg>
+      </span>
+      <div class="min-w-0 flex-1">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-brand-dark">
+        Quick verdict
+      </p>
+      <h2 class="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+        <span class="block">
+          {tcoWinner.make} {tcoWinner.model} is the better value.
+        </span>
+        <span class="block">
+          {tcoOther.make} {tcoOther.model} is {otherAngle}.
+        </span>
+      </h2>
+      <p class="mt-4 leading-relaxed text-ink">{cmp.verdict}</p>
+      <div class="mt-5 grid gap-4 border-t border-brand/20 pt-4 sm:grid-cols-2">
+        {[a, b].map((v) => (
+          <div>
+            <p class="mb-1 text-sm font-semibold text-brand-dark">
+              Pick the {v.model} if
+            </p>
+            <ul class="space-y-1 text-sm text-ink">
+              {v.goodFor.slice(0, 2).map((g) => (
+                <li class="flex items-start gap-2">
+                  <svg viewBox="0 0 20 20" aria-hidden="true" class="mt-0.5 h-4 w-4 shrink-0 text-brand">
+                    <path
+                      d="M5 10.5 8.2 14 15.5 6"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  <span>{g.charAt(0).toLowerCase() + g.slice(1)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      </div>
+    </section>
+
+    {winnerCards.length > 0 && (
+      <section class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <h2 class="text-sm font-bold uppercase tracking-[0.18em] text-ink-faint">
+            Quick decision
+          </h2>
+          <span class="text-xs font-medium text-ink-soft">Based on current assumptions</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {winnerCards.slice(0, 4).map((c) => (
+            <div class="rounded-xl bg-slate-50 p-4">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 text-brand">
+                {icons[c.icon].map((d) => (
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                ))}
+              </svg>
+              <p class="mt-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
+                {c.label}
+              </p>
+              <p class="mt-1 font-semibold">{c.winner}</p>
+              <p class="text-xs text-ink-soft">{c.detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <nav class="mb-10 overflow-x-auto" aria-label="On this page">
+      <div class="flex w-max gap-2 rounded-full border border-slate-200 bg-white p-1.5">
+        {anchorTabs.map((tab) => (
+          <a
+            href={tab.href}
+            class="whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium text-ink-soft transition hover:bg-brand-light hover:text-brand-dark"
+          >
+            {tab.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+
+    <section id="specs" class="mb-12">
+      <h2 class="mb-4 text-xl font-semibold tracking-tight">
+        {a.model} vs {b.model} specs side by side
+      </h2>
+      <table class="w-full table-fixed border-collapse text-sm">
+        <thead>
+          <tr class="text-left">
+            <th class="w-1/3 pb-2 font-medium text-ink-faint">Specification</th>
+            <th class="pb-2 font-semibold">
+              {a.make} {a.model}
+            </th>
+            <th class="pb-2 font-semibold">
+              {b.make} {b.model}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr class="border-t border-slate-200">
+              <td class="py-3 text-ink-soft">{r.label}</td>
+              <td class="py-3">
+                {r.a}
+                {r.winner === 1 && (
+                  <span class="ml-2 rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-dark">
+                    Better
+                  </span>
+                )}
+              </td>
+              <td class="py-3">
+                {r.b}
+                {r.winner === 2 && (
+                  <span class="ml-2 rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-dark">
+                    Better
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <section id="cost" class="mb-12">
+      <div class="grid gap-6">
+        <div>
+          <TcoSection client:load a={a} b={b} />
+        </div>
+        <aside class="w-full rounded-xl border border-slate-200 p-5">
+          <p class="text-xs font-bold uppercase tracking-wide text-ink-faint">Assumptions</p>
+          <ul class="mt-3 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-ink">
+            <li class="flex items-center gap-2.5">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 shrink-0 text-brand">
+                {icons.gauge.map((d) => (
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                ))}
+              </svg>
+              {tcoAssumptions.milesPerYear.toLocaleString("en-US")} miles/year
+            </li>
+            <li class="flex items-center gap-2.5">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 shrink-0 text-brand">
+                {icons.calendar.map((d) => (
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                ))}
+              </svg>
+              {tcoAssumptions.years} years
+            </li>
+            <li class="flex items-center gap-2.5">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 shrink-0 text-brand">
+                {icons.droplet.map((d) => (
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                ))}
+              </svg>
+              Fuel ${tcoAssumptions.gasPricePerGallon}/gal
+            </li>
+          </ul>
+          <p class="mt-4 text-xs text-ink-faint">
+            Costs vary by location and driving habits.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="fit" class="mb-12">
+      <h2 class="mb-4 text-xl font-semibold tracking-tight">
+        Which {a.bodyType ?? "car"} fits you better?
+      </h2>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {[a, b].map((v) => (
+          <div class="rounded-xl border border-slate-200 p-5">
+            <div class="mb-4 flex items-center gap-3">
+              <div class="h-10 w-16 shrink-0">
+                <img
+                  src={imgSrc(v)}
+                  alt={`${v.year} ${v.make} ${v.model} outline`}
+                  class="h-10 w-full object-contain"
+                  loading="lazy"
+                    onerror="this.style.visibility='hidden'"
+                />
+              </div>
+              <div>
+                <p class="font-semibold leading-5">
+                  {v.make} {v.model}
+                </p>
+                <p class="mt-0.5 text-xs text-ink-soft">Best for {bestFor(v)}</p>
+              </div>
+            </div>
+            <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-dark">
+              Good fit
+            </p>
+            <ul class="mb-3 space-y-1 text-sm text-ink-soft">
+              {v.goodFor.map((g) => (
+                <li>✓ {g}</li>
+              ))}
+            </ul>
+            <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              Look elsewhere if
+            </p>
+            <ul class="space-y-1 text-sm text-ink-soft">
+              {v.notFor.map((n) => (
+                <li>✗ {n}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section id="safety" class="mb-12">
+      <h2 class="mb-1 text-xl font-semibold tracking-tight">
+        Safety, recalls and reliability risks
+      </h2>
+      <p class="mb-5 text-sm text-ink-soft">
+        Recall and complaint data is pulled from official NHTSA records for the {a.year} model
+        year. Last refreshed {dataStatus.updated}; complaint counts are risk signals, not a
+        defect rate.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {[a, b].map((v) => {
+          const s = getSafety(v.slug);
+          return (
+            <div class="rounded-xl border border-slate-200 bg-white p-5">
+              <p class="font-semibold">
+                {v.make} {v.model}
+              </p>
+              <p class="mt-1.5 flex items-baseline gap-2">
+                <span class="text-lg leading-none tracking-tight text-amber-500">
+                  {"★".repeat(v.nhtsaOverall)}
+                </span>
+                <span class="text-sm font-semibold text-ink">
+                  {v.nhtsaOverall.toFixed(1)}
+                </span>
+              </p>
+              {s && (
+                <p class="mt-3 text-sm">
+                  <span
+                    class={
+                      s.recallsCount > 3
+                        ? "font-bold text-red-600"
+                        : "font-bold text-ink"
+                    }
+                  >
+                    {s.recallsCount} {s.recallsCount === 1 ? "recall" : "recalls"}
+                  </span>{" "}
+                  <span class="text-ink-faint">
+                    · {s.complaintsCount} NHTSA complaints
+                  </span>
+                </p>
+              )}
+              {s && s.recallSummaries.length > 0 && (
+                <ul class="mt-3 space-y-2 text-xs text-ink-soft">
+                  {s.recallSummaries.map((r) => (
+                    <li class="border-l-2 border-slate-200 pl-2">
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p class="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                Before you buy
+              </p>
+              <ul class="space-y-1 text-sm text-ink-soft">
+                {v.watchOuts.map((w) => (
+                  <li>• {w}</li>
+                ))}
+              </ul>
+              <a
+                href="https://www.nhtsa.gov/recalls"
+                target="_blank"
+                rel="nofollow noopener noreferrer"
+                class="mt-4 inline-block text-sm font-semibold text-brand transition hover:text-brand-dark"
+              >
+                View NHTSA details →
+              </a>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+
+    <section class="mb-12">
+      <h2 class="mb-4 text-xl font-semibold tracking-tight">
+        Dealer questions for this car comparison
+      </h2>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {[a, b].map((v) => (
+          <div class="rounded-xl border border-slate-200 p-5">
+            <p class="mb-3 font-semibold">
+              {v.make} {v.model}
+            </p>
+            <ol class="list-decimal space-y-2 pl-4 text-sm text-ink-soft">
+              {dealerQuestions(v, getSafety(v.slug)).map((q) => (
+                <li>{q}</li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="mb-4 text-xl font-semibold tracking-tight">More car comparisons</h2>
+      <div class="flex flex-wrap gap-2">
+        {moreComparisons.map((other) => (
+          <a
+            href={`/compare/${other.slug}`}
+            class="rounded-full border border-slate-200 px-4 py-1.5 text-sm text-ink-soft transition hover:border-brand hover:text-ink"
+          >
+            {other.vehicleA.model} vs {other.vehicleB.model}
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-10 rounded-2xl bg-slate-950 p-8 text-white sm:p-10">
+      <h2 class="text-2xl font-semibold tracking-tight">
+        Still deciding? Compare another pair.
+      </h2>
+      <p class="mt-2 text-sm leading-6 text-slate-300">
+        Find the right car with real data and clear answers.
+      </p>
+      <a
+        href="/#compare"
+        class="mt-5 inline-block rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-dark"
+      >
+        Start a new comparison
+      </a>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="mb-1 text-xl font-semibold tracking-tight">
+        Build your own side-by-side car comparison
+      </h2>
+      <p class="text-sm text-ink-soft">Pick any two cars from our database.</p>
+      <ComparePicker client:load />
+    </section>
+  </div>
+</Base>

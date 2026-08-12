@@ -1,0 +1,68 @@
+---
+import Base from "@/layouts/Base.astro";
+import ChooseTool from "@/components/ChooseTool";
+---
+
+<Base
+  title="Help me choose a car"
+  description="Answer three questions about budget, body type and priorities - we rank every car in our database using EPA data, NHTSA records and a transparent cost model."
+>
+  <ChooseTool client:load />
+  <div class="mx-auto max-w-3xl px-4">
+    <section class="mt-12 border-t border-slate-200 pt-10">
+      <h2 class="text-2xl font-semibold tracking-tight">How the car chooser works</h2>
+      <p class="mt-3 leading-7 text-ink-soft">
+        The tool first removes vehicles outside your budget and requested body type. It then
+        compares the remaining cars using the priorities you select. Every candidate uses the
+        same mileage, ownership period and energy-price assumptions, so a lower cost or higher
+        ranking comes from the vehicle data rather than a hidden weighting or sponsored result.
+      </p>
+      <div class="mt-6 grid gap-4 sm:grid-cols-3">
+        <div class="rounded-xl border border-slate-200 p-5">
+          <p class="text-sm font-bold text-brand-dark">1. Set the limits</p>
+          <p class="mt-2 text-sm leading-6 text-ink-soft">
+            Choose a purchase budget and the body style that fits your daily use.
+          </p>
+        </div>
+        <div class="rounded-xl border border-slate-200 p-5">
+          <p class="text-sm font-bold text-brand-dark">2. Pick priorities</p>
+          <p class="mt-2 text-sm leading-6 text-ink-soft">
+            Balance total cost, efficiency, cargo, performance, safety signals and price.
+          </p>
+        </div>
+        <div class="rounded-xl border border-slate-200 p-5">
+          <p class="text-sm font-bold text-brand-dark">3. Verify the trade-off</p>
+          <p class="mt-2 text-sm leading-6 text-ink-soft">
+            Open the top pair to inspect every specification and cost assumption side by side.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-semibold tracking-tight">Useful starting points</h2>
+      <p class="mt-3 leading-7 text-ink-soft">
+        Not sure which filters to choose? Start with one of these researched buyer situations,
+        then change the comparison to match your own budget and driving.
+      </p>
+      <div class="mt-5 grid gap-3 sm:grid-cols-2">
+        <a href="/best/best-family-suv-under-40k" class="rounded-xl border border-slate-200 p-5 transition hover:border-brand">
+          <h3 class="font-semibold">Family SUV under $40k</h3>
+          <p class="mt-1 text-sm leading-6 text-ink-soft">Compare space, safety and five-year cost.</p>
+        </a>
+        <a href="/best/best-commuter-car" class="rounded-xl border border-slate-200 p-5 transition hover:border-brand">
+          <h3 class="font-semibold">High-mileage commuter</h3>
+          <p class="mt-1 text-sm leading-6 text-ink-soft">See when fuel savings offset the purchase price.</p>
+        </a>
+        <a href="/best/best-first-car" class="rounded-xl border border-slate-200 p-5 transition hover:border-brand">
+          <h3 class="font-semibold">First car under $30k</h3>
+          <p class="mt-1 text-sm leading-6 text-ink-soft">Prioritize affordability, efficiency and safety.</p>
+        </a>
+        <a href="/methodology" class="rounded-xl border border-slate-200 p-5 transition hover:border-brand">
+          <h3 class="font-semibold">Review our methodology</h3>
+          <p class="mt-1 text-sm leading-6 text-ink-soft">Understand every source, estimate and limitation.</p>
+        </a>
+      </div>
+    </section>
+  </div>
+</Base>

@@ -1,0 +1,274 @@
+---
+import Base from "@/layouts/Base.astro";
+import {
+  buildPairSlug,
+  calcTco,
+  dataStatus,
+  getScenario,
+  getSafety,
+  getVehicle,
+  scenarios,
+  tcoAssumptions,
+  usd,
+} from "@/lib/vehicles";
+
+export function getStaticPaths() {
+  return scenarios.map((s) => ({ params: { slug: s.slug } }));
+}
+
+const { slug } = Astro.params;
+const scenario = getScenario(slug ?? "")!;
+
+const picks = scenario.picks
+  .map((p) => ({ ...p, v: getVehicle(p.vehicle) }))
+  .filter((p) => p.v !== undefined);
+
+const imgSrc = (v: NonNullable<(typeof picks)[number]["v"]>) =>
+  `/vehicles/${v.year}-${v.make.toLowerCase()}-${v.model.toLowerCase().replace(/ /g, "-")}-outline.webp`;
+
+const metaDescription =
+  scenario.intro.length <= 155
+    ? scenario.intro
+    : `${scenario.intro.slice(0, 152).replace(/\s+\S*$/, "")}…`;
+
+const rankingCriteria: Record<string, { title: string; text: string }[]> = {
+  "best-family-suv-under-40k": [
+    { title: "Budget fit", text: "Starting MSRP and whether the useful trim stays near $40,000." },
+    { title: "Family space", text: "Seats, cargo volume and how easily the vehicle handles everyday gear." },
+    { title: "Ownership cost", text: "Fuel, insurance, maintenance and depreciation under one 5-year model." },
+    { title: "Safety signals", text: "NHTSA rating, recalls, complaints and model-specific watch-outs." },
+  ],
+  "best-commuter-car": [
+    { title: "Energy per mile", text: "EPA MPG or MPGe translated into fuel or charging cost." },
+    { title: "Purchase price", text: "A lower running cost only matters when it can offset the price premium." },
+    { title: "5-year total", text: "The same mileage, ownership period and energy prices for every candidate." },
+    { title: "Daily usability", text: "Cargo room, powertrain trade-offs and practical commute considerations." },
+  ],
+  "best-american-cars": [
+    { title: "Distinct purpose", text: "Capability, performance or technology that makes a clear ownership case." },
+    { title: "Value", text: "Starting price and five-year cost relative to what the vehicle delivers." },
+    { title: "Everyday trade-offs", text: "Fuel use, cargo, comfort and the compromises behind the headline appeal." },
+    { title: "Risk check", text: "NHTSA records and specific questions to verify before purchase." },
+  ],
+  "best-first-car": [
+    { title: "Affordable entry", text: "Purchase price low enough to leave room for insurance and maintenance." },
+    { title: "Running cost", text: "Strong fuel economy and a competitive five-year ownership estimate." },
+    { title: "Safety", text: "NHTSA rating plus recall and complaint signals for the model year." },
+    { title: "Manageable daily use", text: "Practical size, sensible power and easy everyday ownership." },
+  ],
+};
+
+const criteria = rankingCriteria[scenario.slug] ?? rankingCriteria["best-first-car"];
+const topPick = picks[0]?.v;
+const topPair = picks.length > 1 ? buildPairSlug(picks[0].v!.slug, picks[1].v!.slug) : undefined;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://carcomparisonai.com/" },
+        { "@type": "ListItem", position: 2, name: "Best cars", item: "https://carcomparisonai.com/#situations" },
+        { "@type": "ListItem", position: 3, name: scenario.title },
+      ],
+    },
+    {
+      "@type": "ItemList",
+      name: scenario.title,
+      description: scenario.intro,
+      itemListElement: picks.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Car",
+          name: `${p.v!.year} ${p.v!.make} ${p.v!.model}`,
+          image: new URL(imgSrc(p.v!), Astro.site).toString(),
+          brand: { "@type": "Brand", name: p.v!.make },
+          model: p.v!.model,
+          vehicleModelDate: String(p.v!.year),
+          bodyType: p.v!.bodyType,
+          fuelType: p.v!.fuelType,
+          additionalProperty: [
+            { "@type": "PropertyValue", name: "Starting MSRP", value: usd(p.v!.msrp) },
+            { "@type": "PropertyValue", name: "Combined MPG or MPGe", value: p.v!.mpgCombined },
+            { "@type": "PropertyValue", name: "5-year ownership cost", value: usd(calcTco(p.v!).total) },
+          ],
+        },
+      })),
+    },
+  ],
+};
+---
+
+<Base
+  title={scenario.title}
+  description={metaDescription}
+  image={topPick ? imgSrc(topPick) : undefined}
+  imageAlt={topPick ? `${topPick.year} ${topPick.make} ${topPick.model}, our top pick` : scenario.title}
+  pageType="article"
+>
+  <div class="mx-auto max-w-3xl px-4">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <nav class="pt-6 text-sm text-ink-faint" aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-1.5">
+        <li><a href="/" class="transition hover:text-ink">Home</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/#situations" class="transition hover:text-ink">Best cars</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="text-ink-soft">{scenario.title}</li>
+      </ol>
+    </nav>
+
+    <section class="py-10">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-brand">
+        Buyer guide · Updated {dataStatus.updated}
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{scenario.title}</h1>
+      <p class="mt-4 leading-relaxed text-ink-soft">{scenario.intro}</p>
+      <p class="mt-3 text-sm text-ink-faint">
+        Ranked from the current {dataStatus.vehicles}-vehicle beta database. Data refreshed{" "}
+        {dataStatus.updated}.
+      </p>
+    </section>
+
+    {topPick && (
+      <section class="mb-8 grid gap-5 rounded-2xl bg-brand-light p-5 sm:grid-cols-[9rem_1fr] sm:items-center sm:p-6">
+        <img
+          src={imgSrc(topPick)}
+          alt={`${topPick.year} ${topPick.make} ${topPick.model} outline`}
+          class="h-24 w-full object-contain"
+          loading="eager"
+        />
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.18em] text-brand-dark">Our top pick</p>
+          <h2 class="mt-2 text-2xl font-semibold tracking-tight">
+            {topPick.year} {topPick.make} {topPick.model}
+          </h2>
+          <p class="mt-2 text-sm leading-6 text-ink-soft">{picks[0].blurb}</p>
+        </div>
+      </section>
+    )}
+
+    <section class="mb-10">
+      <h2 class="text-2xl font-semibold tracking-tight">How we ranked these cars</h2>
+      <p class="mt-2 text-sm leading-6 text-ink-soft">
+        Every candidate is judged under the same assumptions. We combine comparable government
+        data with practical buyer trade-offs instead of relying on a single invented score.
+      </p>
+      <div class="mt-5 grid gap-3 sm:grid-cols-2">
+        {criteria.map((criterion) => (
+          <div class="rounded-xl border border-slate-200 p-4">
+            <h3 class="font-semibold text-ink">{criterion.title}</h3>
+            <p class="mt-1 text-sm leading-6 text-ink-soft">{criterion.text}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <h2 class="sr-only">Ranked comparison table</h2>
+      <div class="grid grid-cols-[3rem_1fr_auto_auto] gap-3 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-ink-faint">
+        <span>Rank</span>
+        <span>Vehicle</span>
+        <span>MPG</span>
+        <span>5-year cost</span>
+      </div>
+      <div class="divide-y divide-slate-200">
+        {picks.map((p, i) => {
+          const v = p.v!;
+          const tco = calcTco(v);
+          return (
+            <div class="grid grid-cols-[3rem_1fr_auto_auto] gap-3 px-4 py-3 text-sm">
+              <span class="font-semibold text-brand">#{i + 1}</span>
+              <span class="font-medium text-ink">
+                {v.make} {v.model}
+              </span>
+              <span class="text-ink-soft">
+                {v.mpgCombined} {v.fuelType === "ev" ? "MPGe" : "MPG"}
+              </span>
+              <span class="text-ink-soft">{usd(tco.total)}</span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+
+    <section class="space-y-5">
+      {picks.map((p, i) => {
+        const v = p.v!;
+        const tco = calcTco(v);
+        return (
+          <article class="rounded-xl border border-slate-200 p-5 sm:p-6">
+            <div class="grid gap-4 sm:grid-cols-[7rem_1fr] sm:items-start">
+              <img
+                src={imgSrc(v)}
+                alt={`${v.year} ${v.make} ${v.model} outline`}
+                class="h-20 w-full object-contain"
+                loading="lazy"
+              />
+              <div>
+                <div class="mb-2 flex flex-wrap items-baseline justify-between gap-3">
+              <h2 class="text-lg font-semibold">
+                <span class="mr-2 text-brand">#{i + 1}</span>
+                {v.year} {v.make} {v.model}
+              </h2>
+              <p class="shrink-0 text-sm text-ink-soft">{usd(v.msrp)} MSRP</p>
+            </div>
+            <p class="mb-3 text-sm leading-relaxed text-ink-soft">{p.blurb}</p>
+            <p class="text-xs text-ink-faint">
+              {v.mpgCombined} {v.fuelType === "ev" ? "MPGe" : "MPG"} combined · 5-year cost ~
+              {usd(tco.total)} · NHTSA {"★".repeat(v.nhtsaOverall)} · {getSafety(v.slug)?.recallsCount ?? 0} recalls
+            </p>
+            {i === 0 && picks.length > 1 && (
+              <a
+                href={`/compare/${buildPairSlug(picks[0].v!.slug, picks[1].v!.slug)}`}
+                class="mt-3 inline-block text-sm font-medium text-brand hover:text-brand-dark"
+              >
+                Compare #1 vs #2 side by side →
+              </a>
+            )}
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </section>
+
+    <section class="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-6">
+      <h2 class="text-xl font-semibold tracking-tight">What the cost estimates include</h2>
+      <p class="mt-3 text-sm leading-6 text-ink-soft">
+        The five-year totals use {tcoAssumptions.milesPerYear.toLocaleString("en-US")} miles per
+        year, ${tcoAssumptions.gasPricePerGallon}/gallon gasoline and
+        ${tcoAssumptions.electricityPerKwh}/kWh home electricity. They combine energy,
+        insurance, maintenance and modeled depreciation. These are comparison estimates, not
+        quotes; local prices, financing, taxes and incentives can change the result.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-4 text-sm font-semibold">
+        <a href="/methodology" class="text-brand hover:text-brand-dark">Read the methodology →</a>
+        <a href="/choose" class="text-brand hover:text-brand-dark">Get a personalized shortlist →</a>
+        {topPair && (
+          <a href={`/compare/${topPair}`} class="text-brand hover:text-brand-dark">
+            Compare the top two →
+          </a>
+        )}
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="mb-4 text-xl font-semibold tracking-tight">More car comparison guides</h2>
+      <div class="flex flex-wrap gap-2">
+        {scenarios
+          .filter((s) => s.slug !== slug)
+          .map((s) => (
+            <a
+              href={`/best/${s.slug}`}
+              class="rounded-full border border-slate-200 px-4 py-1.5 text-sm text-ink-soft transition hover:border-brand hover:text-ink"
+            >
+              {s.title}
+            </a>
+          ))}
+      </div>
+    </section>
+  </div>
+</Base>

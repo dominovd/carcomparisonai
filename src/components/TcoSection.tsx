@@ -1,0 +1,201 @@
+import { calcTco, usd, type Vehicle } from "@/lib/vehicles";
+import { defaultProfile, useProfile, type Profile } from "@/components/profile";
+
+const inputCls =
+  "w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-brand focus:outline-none";
+
+const PRESETS: { label: string; profile: Profile }[] = [
+  { label: "Average driver", profile: defaultProfile },
+  {
+    label: "Low mileage",
+    profile: { ...defaultProfile, milesPerYear: 8000 },
+  },
+  {
+    label: "High mileage",
+    profile: { ...defaultProfile, milesPerYear: 22000 },
+  },
+  {
+    label: "Public EV rates",
+    profile: { ...defaultProfile, electricityPerKwh: 0.42 },
+  },
+];
+
+function sameProfile(a: Profile, b: Profile) {
+  return (
+    a.milesPerYear === b.milesPerYear &&
+    a.years === b.years &&
+    a.gasPricePerGallon === b.gasPricePerGallon &&
+    a.electricityPerKwh === b.electricityPerKwh
+  );
+}
+
+export default function TcoSection({ a, b }: { a: Vehicle; b: Vehicle }) {
+  const [profile, saveProfile] = useProfile();
+  const tcoA = calcTco(a, profile);
+  const tcoB = calcTco(b, profile);
+  const cheaper = tcoA.total <= tcoB.total ? a : b;
+  const diff = Math.abs(tcoA.total - tcoB.total);
+
+  const set = (key: keyof typeof profile) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    saveProfile({ ...profile, [key]: Number(e.target.value) || 0 });
+
+  return (
+    <section className="mb-12">
+      <h2 className="mb-1 text-xl font-semibold tracking-tight">
+        Car cost of ownership comparison - for your driving
+      </h2>
+      <p className="mb-4 text-sm text-ink-soft">
+        Adjust the numbers to your life. They're saved on this device and applied to every
+        comparison on the site.
+      </p>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {PRESETS.map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            onClick={() => saveProfile(preset.profile)}
+            className={[
+              "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+              sameProfile(profile, preset.profile)
+                ? "border-brand bg-brand-light text-brand-dark"
+                : "border-slate-200 text-ink-soft hover:border-brand hover:text-ink",
+            ].join(" ")}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-4">
+        <label className="text-xs text-ink-soft">
+          Miles / year
+          <input
+            type="number"
+            step={1000}
+            min={1000}
+            value={profile.milesPerYear}
+            onChange={set("milesPerYear")}
+            className={inputCls + " mt-1"}
+          />
+        </label>
+        <label className="text-xs text-ink-soft">
+          Years of ownership
+          <select value={profile.years} onChange={set("years")} className={inputCls + " mt-1"}>
+            {[3, 5, 7].map((y) => (
+              <option key={y} value={y}>
+                {y} years
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-ink-soft">
+          Gas, $/gallon
+          <input
+            type="number"
+            step={0.1}
+            min={1}
+            value={profile.gasPricePerGallon}
+            onChange={set("gasPricePerGallon")}
+            className={inputCls + " mt-1"}
+          />
+        </label>
+        <label className="text-xs text-ink-soft">
+          Electricity, $/kWh
+          <input
+            type="number"
+            step={0.01}
+            min={0.05}
+            value={profile.electricityPerKwh}
+            onChange={set("electricityPerKwh")}
+            className={inputCls + " mt-1"}
+          />
+        </label>
+      </div>
+
+      {diff > 0 && (
+        <p className="mb-5 rounded-lg bg-slate-50 px-4 py-3 text-sm">
+          With your driving, the{" "}
+          <span className="font-semibold">
+            {cheaper.make} {cheaper.model}
+          </span>{" "}
+          saves about <span className="font-semibold text-brand-dark">{usd(diff)}</span> over{" "}
+          {profile.years} years.
+        </p>
+      )}
+
+      <div className="mb-4 grid gap-4 sm:grid-cols-2">
+        {[
+          { v: a, t: tcoA, barColor: "bg-brand" },
+          { v: b, t: tcoB, barColor: "bg-slate-700" },
+        ].map(({ v, t, barColor }) => {
+          const maxCat = Math.max(
+            tcoA.depreciation,
+            tcoB.depreciation,
+            tcoA.fuel,
+            tcoB.fuel,
+            tcoA.insurance,
+            tcoB.insurance,
+            tcoA.maintenance,
+            tcoB.maintenance
+          );
+          const rows = [
+            { label: "Depreciation", value: t.depreciation },
+            { label: "Fuel", value: t.fuel },
+            { label: "Insurance", value: t.insurance },
+            { label: "Maintenance", value: t.maintenance },
+          ];
+          const isCheaper = v.slug === cheaper.slug && diff > 0;
+          return (
+            <div key={v.slug} className="rounded-xl border border-slate-200 p-5">
+              <p className="font-semibold">
+                {v.make} {v.model}
+              </p>
+              <p className="mt-1 flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
+                {usd(t.total)}
+                {isCheaper && (
+                  <span className="rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-brand-dark">
+                    Lower by {usd(diff)}
+                  </span>
+                )}
+              </p>
+              <div className="mt-4 space-y-2.5">
+                {rows.map((r) => (
+                  <div key={r.label} className="flex items-center gap-2">
+                    <span className="w-24 shrink-0 text-xs text-ink-soft">{r.label}</span>
+                    <span
+                      className="flex-1 overflow-hidden rounded-full bg-slate-100"
+                      style={{ height: 10 }}
+                    >
+                      <span
+                        className={`block rounded-full ${barColor} transition-all duration-300`}
+                        style={{
+                          width: `${Math.max(3, Math.round((r.value / maxCat) * 100))}%`,
+                          height: "100%",
+                        }}
+                      />
+                    </span>
+                    <span className="w-16 shrink-0 text-right text-xs font-medium text-ink">
+                      {usd(r.value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-ink-faint">
+                ${(t.total / Math.max(1, profile.milesPerYear * profile.years)).toFixed(2)} per
+                mile over {profile.years} years
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-xs text-ink-faint">
+        Insurance, maintenance and depreciation are class averages - see{" "}
+        <a href="/methodology" className="underline hover:text-ink">
+          how we calculate
+        </a>
+        . Your quotes may differ.
+      </p>
+    </section>
+  );
+}
